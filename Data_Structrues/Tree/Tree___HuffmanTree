@@ -1,0 +1,69 @@
+//prefix code: no code is another's prefix
+template<class T>
+struct HuffmanNode {
+    T data;
+    int w;
+    HuffmanNode<T> *parent;
+    HuffmanNode<T> *left, *right;
+    HuffmanNode<T>(const T &val, const int& w, 
+        HuffmanNode<T> *p = nullptr, 
+        HuffmanNode<T> *left = nullptr,
+        HuffmanNode<T> *right = nullptr);
+};
+
+template<class T>
+class HuffmanTree {
+protected:
+    HuffmanNode<T> *root;
+    void deleteSubTree(HuffmanNode<T> *t);
+    void mergeTree(HuffmanNode<T> *&t1, HuffmanNode<T> *&t2, HuffmanNode<T>*& parent);
+public:
+    HuffmanTree(const string& s);
+    HuffmanTree(T arr[], int w[], int n);
+    ~HuffmanTree() { deleteSubTree(root); }
+};
+
+struct compare {
+    bool operator()(Node *a, Node *b) {
+        return a->val > b->val;
+    }
+};
+
+template<class T>
+HuffmanTree<T>::HuffmanTree(const string& s) {
+    priority_queue<Node *, vector<Node *>, compare> Q;
+    int n = s.length();
+    int tmp[200] = {0};
+    for (int i = 0; i < n; i++) tmp[s[i]]++;
+    for (int i = 'a'; i <= 'z'; i++) {
+        if(tmp[i] != 0)
+            Q.push(new Node(tmp[i], 1));
+    }
+    // ...
+}
+
+template<class T>
+HuffmanTree<T>::HuffmanTree(T arr[], int w[], int n) {
+    minHeap<T> hp;
+    HuffmanNode<T> *p, *fir, *sec;
+    HuffmanNode<T>* nodeList = new HuffmanNode<T>[n];
+    for (int i = 0; i < n; i++) {
+        nodeList[i].data = arr[i];
+        nodeList[i].w = w[i];
+        nodeList[i].parent = nodeList[i].left = nodeList[i].right = nullptr;
+        hp.insert(arr[i]);
+    }
+    for (int i = 1; i < n; i++) {
+        fir = hp.deleteMin();
+        sec = hp.deleteMin();
+        mergeTree(fir, sec, p);
+        hp.insert(p);
+    }
+    root = p;
+}
+
+template<class T>
+void HuffmanTree<T>::mergeTree(HuffmanNode<T> *&t1, HuffmanNode<T> *&t2, HuffmanNode<T>*& parent) {
+    parent = new HuffmanNode<T>(-1,t1->w + t2->w, nullptr, t1, t2);
+    t1->parent = t2->parent = parent;
+}

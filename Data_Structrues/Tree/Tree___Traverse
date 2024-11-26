@@ -1,0 +1,99 @@
+// normal one
+template<class T>
+void bTree<T>::preOrder(void (*visit)(bTreeNode<T>* t), bTreeNode<T> *subTree = root) {
+    if(subTree == nullptr) return;
+    visit(subTree);
+    preOrder(visit, subTree->left);
+    preOrder(visit, subTree->right);
+}
+
+// non-recursion traverse
+
+// preorder (stack)
+// visit node, push right, if left = nullptr p = pop, else p = left 
+template<class T>
+void bTree<T>::inOrder(void (*visit)(bTreeNode<T>* t)) {
+    stack<bTreeNode<T>*> S;
+    bTreeNode<T> *p = t;
+    S, push(p);
+    while(p != nullptr) {
+        visit(p);
+        if(p->right != nullptr) S.push(p->right);
+        if(p->left != nullptr) p = p->left;
+        else p = S.pop();
+    }
+}
+
+// levelorder (queue)
+// each level, push next level left right, visit pop
+template<class T>
+void bTree<T>::levelOrder(void (*visit)(bTreeNode<T>* t)) {
+    if(t == nullptr) return;
+    queue<bTreeNode<T> *> Q;
+    bTreeNode<T> *p = t;
+    Q.push(p);
+    while(!Q.empty()) {
+        p = Q.pop();
+        visit(p);
+        if(p->left != nullptr) Q.push(p->left);
+        if(p->right != nullptr) Q.push(p->right);
+    }
+}
+
+// inorder (stack)
+// push while not nullptr, visit pop, p = right
+template <class T>
+void bTree<T>::inOrder(void (*visit)(BinTreeNode<T> *t)) {
+    stack<BTreeNode<T>*> S;
+    BTreeNode<T> *p = t;
+    do {
+        while (p != nullptr) {
+            S.Push(p);
+            p = p->left;
+        }
+        if (!S.empty()) {
+            p = S.Pop();
+            visit(p);
+            p = p->right;
+        }
+    } while (p != nullptr || !S.empty());
+}
+
+// posrorder (stack * 2)
+// each node, push (noode, L), node = left, if node = nullptr, pop, if L, push (node, R), node = right, else if R, visit node
+
+template<class T>
+struct stkNode<T> {
+    bTreeNode<T>* ptr;
+    char tag;
+}
+template<class T>
+void bTree<T>::postOrder(void (*visit)(bTreeNode<T>* t)) {
+    stack<stkNode<T>> S;
+    stkNode<T> w;
+    bTreeNode<T> *p = t;
+    bTreeNode<T> *p = t;
+    do {
+        while(p != nullptr) {
+            w.ptr = p;
+            w.tag = 'L';
+            S.push(w);
+            p = p->left;
+        }
+        bool flag = 1;
+        while(flag && !S.empty()) {
+            w = S.pop();
+            switch(w.tag) {
+                case 'L':
+                    w.tag = 'R';
+                    S.push(w);
+                    flag ^= 1;
+                    p = p->right;
+                    break;
+                case 'R':
+                    visit(w.ptr);
+                    break;
+            }
+        }
+    } while (!S.empty());
+}

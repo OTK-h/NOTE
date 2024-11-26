@@ -1,0 +1,155 @@
+template<class T>
+struct tbNode {
+    T data;
+    bool, ltag, rtag;
+    // 0: child, 1: pred|next
+    tbNode<T>* left, *right;
+    tbNode(const T &item);
+}
+
+template<class T>
+class tbTree {
+    // inOrder thread
+protected:
+    tbNode<T>* root;
+    void createThread(tbNode<T> *cur, tbNode<T> *pre);
+    tbNode<T>* parent(tbNode<T>* t);
+public:
+    tbTree() { root = nullptr; }
+    void build();
+    // inOrder
+    void tbTree<T>::inOrder_traverse_inOrder_tbTree(void (*visit)(tbNode<T> *), tbNode<T> *cur = root);
+    void tbTree<T>::preOrder_traverse_inOrder_tbTree(void (*visit)(tbNode<T> *), tbNode<T> *cur = root);
+    void tbTree<T>::postOrder_traverse_inOrder_tbTree(void (*visit)(tbNode<T> *), tbNode<T> *cur = root);
+
+    tbNode<T> *inOrderFirst(tbNode<T> *cur);
+    tbNode<T> *inOrderLast(tbNode<T> *cur);
+
+    tbNode<T> *inOrderNext(tbNode<T> *cur);
+    tbNode<T> *inOrderPred(tbNode<T> *cur);
+
+    tbNode<T> *preOrderNext(tbNode<T> *cur);
+
+    tbNode<T> *postOrderNext(tbNode<T> *cur);
+}
+
+template <class T>
+void tbTree<T>::build() {
+    tbNode<T> *pre = nullptr;
+    if (root != nullptr) {
+        createThread(root, pre);
+        // now pre is last node in InOrder
+        pre->right = nullptr;
+        pre->rtag = 1;
+    }
+}
+
+template <class T>
+void tbTree<T>::createThread(tbNode<T> *cur, tbNode<T> *&pre) {
+    // pre is reference
+    if (cur == nullptr) return;
+    createThread(cur->left, pre);
+    if (cur->left == nullptr) {
+        cur->left = pre;
+        cur->ltag = 1;
+    }
+    if (pre != nullptr && pre->right == nullptr) {
+        pre->right = cur;
+        pre->rtag = 1;
+    }
+    pre = cur;
+    createThread(cur->right, pre);
+}
+
+template<class T>
+tbNode<T>* tbTree<T>::inOrderFirst(tbNode<T>* cur) {
+    tbNode<T> *p = cur;
+    while(p->ltag == 0) p = p->left;
+    return p;
+}
+
+template<class T>
+tbNode<T>* tbTree<T>::inOrderLast(tbNode<T>* cur) {
+    return cur->rtag == 1 ? cur->right : inOrderFirst(cur->right);
+}
+
+template<class T>
+tbNode<T>* tbTree<T>::inOrderPred(tbNode<T>* cur) {
+    if (cur->ltag) return cur->left;
+    return inOrderLast(cur->left);
+}
+
+template<class T>
+tbNode<T>* tbTree<T>::inOrderNext(tbNode<T>* cur) {
+    if (cur->rtag) return cur->right;
+    return inOrderFirst(cur->right);
+}
+template <class T>
+void tbNode<T>::inOrder_traverse_inOrder_tbTree(void (*visit)(tbNode<T> *), tbNode<T> *t) {
+    if(t == nullptr) return;
+    while(t->l != nullptr) t = t->l;
+    while(t != nullptr){
+        visit(t);
+        t = inOrderNext(t);
+    }
+}
+
+// preOrder
+template <class T>
+tbNode<T> *tbTree<T>::preOrderNext(tbNode<T> *cur) {
+    if(cur->ltag == 0) return cur->left;
+    if(cur->rtag == 0) return cur->right;
+    while(cur != nullptr && cur->rtag == 1) cur = cur->right;
+    if(p != nullptr) return p->right;
+}
+template <class T>
+void tbTree<T>::preOrder_traverse_inOrder_tbTree(void (*visit)(tbNode<T> *), tbNode<T> *t) {
+    while(t != nullptr) {
+        visit(t);
+        t = preOrderNext(t);
+    }
+}
+
+// postOrder
+template <class T>
+tbNode<T> *tbTree<T>::inOrderParent(tbNode<T> *cur) {
+    if(cur == nullptr) return nullptr;
+    tbNode<T> *p = inOrderFirst(cur);
+    if(p->left != nullptr) {
+        p = p->left;
+        while(p != nullptr && p->left != cur && p->right != cur) p = p->right;
+    }
+    if(p==nullptr || p->left == cur) {
+        p = cur;
+        while(p->rtag == 0) p = p->right;
+        p = p->right;
+        while(p != nullptr && p->left != cur && p->right != cur) p = p->left;
+    }
+    return p;
+}
+template <class T>
+tbNode<T> *tbTree<T>::postOrderFirst(tbNode<T> *cur) {
+    while(cur->ltag == 0 || cur->rtag == 0) {
+        if(cur->ltag == 0) cur = cur->left;
+        else if (cur->rtag == 0) cur = cur->right;
+    }
+    return cur;
+}
+template <class T>
+tbNode<T> *tbTree<T>::postOrderNext(tbNode<T> *cur) {
+
+}
+template <class T>
+void tbTree<T>::postOrder_traverse_inOrder_tbTree(void (*visit)(tbNode<T> *), tbNode<T> *t) {
+    t = postOrderFirst(t);
+    visit(t);
+    tbNode<T> *p = inOrderParent(t);
+    while(p = inOrderParent(t) != nullptr) {
+        if(p->right == t || p->rtag == 1) t = p;
+        else p = postOrderNext(p->right);
+        visit(t);
+    }
+}
+
+// inOrder insert and remove 
+// totally shit code

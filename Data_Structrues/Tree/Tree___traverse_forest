@@ -1,0 +1,17 @@
+// root first traverse = preOrder in bTree
+template<class T>
+void csTree<T>::preOrder(csNode<T>* t = root) {
+    if(t == nullptr) return;
+    cout << t->val;
+    for (t = t->child; t != nullptr; t = t->sibling)
+        preOrder(t);
+}
+
+// root lase traverse = inOrder in bTree
+template<class T>
+void csTree<T>::postOrder(csNode<T>* t = root) {
+    if(t == nullptr) return;
+    for (csNode<T>* p = t->child; p != nullptr; p = p->sibling)
+        postOrder(p);
+    cout << t->data;
+}

@@ -1,0 +1,141 @@
+int isp[200], icp[200];
+
+bool isDigit(char ch) {
+    return int(ch - '0') >= 0 && int(ch - '0') <= 9;
+}
+
+long long myPow(long long a, long long b) {
+    if (b == 0) return 1;
+    if (b == 1) return a;
+    if (b % 2 ) return a * myPow(a * a, b / 2);
+    else return myPow(a * a, b / 2);
+}
+
+void set() {
+    isp['#'] = icp['#'] = 0;
+    //in stack prio
+    isp['('] = 1;
+    isp[')'] = 10;
+    isp['~'] = 8;
+    isp['^'] = 7;
+    isp['*'] = isp['/'] = 5;
+    isp['+'] = isp['-'] = 3;
+    //out stack prio
+    icp['('] = 10;
+    icp[')'] = 1;
+    icp['~'] = 9;
+    icp['^'] = 6;
+    icp['*'] = icp['/'] = 4;
+    icp['+'] = icp['-'] = 2;
+}
+
+template <typename T>
+class Stack {
+public:
+    T stack[10005];
+    int p;
+    Stack() { p = -1; }
+    void push(const T &var) { stack[++p] = var; }
+    T pop() { return stack[p--]; }
+    bool isEmpty() { return p < 0; }
+    T top() {
+        if(isEmpty()) return 0;
+        return stack[p];
+    }
+};
+
+class Coculator {
+public:
+    Stack<long long> S;
+    string tar;
+    Coculator(string tar_) {
+        tar = tar_;
+        Run();
+    }
+    void Run() {
+        for (char ch : tar) {
+            if (isDigit(ch))
+                S.push((long long)(ch - '0'));
+            else
+                DoOperator(ch);
+        }
+    }
+    void DoOperator(char op) {
+        long long left, right, var;
+        if (op == '~')
+            Get1Operands(var);
+        else
+            Get2Operands(left, right);
+
+        switch (op) {
+        case '+':
+            S.push(left + right);
+            break;
+        case '-':
+            S.push(left - right);
+            break;
+        case '*':
+            S.push(left * right);
+            break;
+        case '/':
+            S.push(left / right);
+            break;
+        case '^':
+            S.push(myPow(left, right));
+            break;
+        case '~':
+            S.push(-var);
+            break;
+        }
+    }
+    void Get2Operands(long long &left, long long &right) {
+        right = S.pop();
+        left = S.pop();
+    }
+    void Get1Operands(long long &var) {
+        var = S.pop();
+    }
+};
+
+class Changer {
+public:
+    Stack<char> S;
+    string tar;
+    string ret;
+    Changer(string tar_) {
+        tar = tar_;
+        ret = "";
+        Run();
+    }
+    void Run() {
+        for (char ch : tar) {
+            if (isDigit(ch)) ret += ch;
+            else {
+                if (icp[ch] > isp[S.top()])
+                    S.push(ch);
+                else if (icp[ch] == isp[S.top()])
+                    S.pop();
+                else{
+                    while (!S.isEmpty() && icp[ch] <= isp[S.top()]) {
+                        if (S.top() == '(') {
+                            S.pop();
+                            break;
+                        }
+                        else
+                            ret += S.pop();
+                    }
+                    if (ch != ')')
+                        S.push(ch);
+                }
+            }
+        }
+        while (!S.isEmpty())
+            ret += S.pop();
+    }
+};
+
+long long func(const string& tmp) {
+    Changer t(tmp);
+    Coculator r(t.ret);
+    return r.S.top();
+}

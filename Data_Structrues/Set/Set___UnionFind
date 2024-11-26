@@ -1,0 +1,55 @@
+// ez type
+unordered_map<int, int> f, r;
+int find (int x) {
+    if(!f.count(x)) {
+        f[x] = x;
+        r[x] = 1;
+    }
+    return f[x] == x ? x : f[x] = find(f[x]);
+}
+void Union (int x, int y) {
+    int fx = find(x), fy = find(y);
+    if(fx == fy) return;
+    if(r[fx] < r[fy]) swap(fx, fy);
+    r[fx] += r[fy];
+    f[fy] = fx; 
+}
+int NumOfSet () {
+    int ret = 0;
+    for(auto &[x, fx] : f)
+        if(fx == x) ret++;
+    return ret;
+}
+
+// NJU ver
+class UFSet {
+private:
+    int* parent;
+    int* rank
+    int size;
+public:
+    UFSet(int sz = DefaultSize);
+    ~UFSet() { delete[] parent; }
+    void Union(int x, int y);
+    int find(int x);
+};
+
+UFSet::UFSet(int sz) {
+    size = sz;
+    parent = new int[size];
+    rank = new int[size]();
+    for(int i = 0; i < size; i++) parent[i] = i;
+}
+
+void UFSet::Union(int x, int y) {
+    int fx = find(x);
+    int fy = find(y);
+    if(fx == fy) return;
+    if(rank[fx] < rank[fy]) swap(fx, fy);
+    rank[fx] += rank[fy];
+    parent[fy] = fx;
+}
+
+int UFSET::find(int x) {
+    return parent[x] == x ? x : parent[x] = find(parent[x]);
+}

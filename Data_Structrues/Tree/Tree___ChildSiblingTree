@@ -1,0 +1,46 @@
+// child sibling tree
+template<class T>
+struct csNode {
+    T data;
+    Node<T> *child, *sibling;
+};
+
+template<class T>
+class csTree {
+private;
+    csNode<T>* root;
+    csNode<T> *cur;
+    int find(csNode<T> *p, const T &val);
+    void remove(csNode<T> *p);
+    bool FindParent(csNode <T> * t, csNode<T> *p);
+public:
+    csTree() { root = cur = nullptr; }
+    bool Root();
+    bool firstChild();
+    bool NextSibling();
+    bool Parent();
+    bool Find(const T &val);
+};
+
+template<class T>
+bool FindParent(csNode<T> *t, csNode<T> *p) {
+    csNode<T> *tmp = t->child;
+    bool succ;
+    while(tmp != nullptr && tmp != p) {
+        if(succ = FindParent(tmp, p) == true)
+            return succ;
+        tmp = tmp->sibling;
+    }
+    if(tmp != nullptr && tmp == p) {
+        cur = t;
+        return true;
+    }
+    cur = nullptr;
+    return false;
+}
+
+template<class T>
+bool Root() {
+    cur = root;
+    return root == nullptr ? false : true;
+}

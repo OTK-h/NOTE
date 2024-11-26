@@ -1,0 +1,94 @@
+template <class T>
+class minPrioQueue
+{
+public:
+    virtual bool insert(T &x) = 0;
+    virtual bool remove(T &x) = 0;
+};
+
+template <class T>
+class minHeap : public minPrioQueue<T>
+{
+private:
+    // index start from 1
+    T *heap;
+    int curSize, Capacity;
+    void PercolateDown(const int &start);
+    void PercolateUp(const int &start);
+
+public:
+    minHeap(int sz = DefaultSize);
+    minHeap(T arr[], int sz);
+    ~minHeap() { delete[] heap; }
+    bool insert(const T &x);
+    bool removeMin(const T &x);
+    bool empty() const { return curSize == 0; }
+    bool full() const { return curSize == Capacity; }
+    void makeEmpty() { curSize = 0; }
+};
+
+template <class T>
+minHeap<T>::minHeap(T arr[], int sz)
+{
+    Capacity = DefaultSize < sz ? sz : DefaultSize;
+    heap = new T[Capacity + 1];
+    curSize = Capacity;
+    for (int i = 0; i < sz; i++)
+        heap[i + 1] = arr[i];
+    for (int i = curSize / 2; i >= 0; i--)
+        PercolateDown(i);
+}
+
+template <class T>
+void minHeap<T>::PercolateDown(const int &start)
+{
+    int cur = start, child = 2 * cur;
+    T tmp = heap[cur];
+    while (child <= curSize)
+    {
+        if (child < end && heap[child] < heap[child + 1])
+            child++; // left turn to right
+        if (heap[child] >= tmp)
+            break;
+        heap[cur] = heap[child];
+        cur = child;
+        child = 2 * cur;
+    }
+    heap[cur] = tmp;
+}
+
+template <class T>
+void minHeap<T>::PercolateUp(const int &start)
+{
+    int cur = start, parent = cur / 2;
+    T tmp = heap[cur];
+    while (parent > 0)
+    {
+        if (heap[parent <= tmp])
+            break;
+        heap[cur] = heap[parent];
+        cur = parent;
+        parent = cur / 2;
+    }
+    heap[cur] = tmp;
+}
+
+template <class T>
+bool minHeap<T>::insert(const T &x)
+{
+    if (curSize == Capacity)
+        return 0;
+    heap[++curSize] = x;
+    PercolateUp(curSize);
+    return 1;
+}
+
+template <class T>
+bool minHeap<T>::removeMin(const T &x)
+{
+    if (empty())
+        return 0;
+    heap[0] = heap[curSize--];
+    PercolateDown(0);
+    return 1;
+}

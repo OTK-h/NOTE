@@ -1,0 +1,26 @@
+int pre[10000], in[10000];
+Node* build_In_Pre(int l1, int r1, int l2, int r2) {
+    if(l1 > r1) return nullptr;
+    if(l1 == r1) return new Node(pre[l1]);
+
+    Node *ret = new Node(pre[l1]);
+    
+    int p = l2;
+    while(in[p] != pre[l1]) p++;
+    
+    ret->l = build_In_Pre(l1 + 1, l1 + p - l2, l2, p - 1);
+    ret->r = build_In_Pre(l1 + p - l2 + 1, r1, p + 1, r2);
+    return ret;
+}
+
+// leaf has left and right ( val = -1 )
+int pre[10000];
+int p = 0;
+void build_Pre(bTreeNode<T> *&subTree) {
+    if (pre[p] != -1) {
+        subTree = new bTreeNode<T>(pre[p++]);
+        build_Pre(subTree->left);
+        build_Pre(subTree->right);
+    }
+    else subTree = nullptr;
+}

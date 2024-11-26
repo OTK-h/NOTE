@@ -1,0 +1,31 @@
+// 1. level start from 1, ith level 2^(i-1) nodes most
+// 2. depth = k, k nodes least, 2^k-1 nodes most
+// 3. n1 leaves, n2 not leaves, n1 = n2 + 1
+// 4. tree with n nodes, depth = log2(n+1) up
+
+template<class T>
+struct bTreeNode {
+    T val;
+    bTreeNode<T> *left, *right;
+    bTreeNode(T v, bTreeNode<T> *l_, bTreeNode<T> *r_);
+};
+
+template<class T>
+class bTree {
+protected:
+    bTreeNode<T> *root;
+public:
+    bTree() { root = nullptr; }
+    int Height();
+    int Size();
+    bool isEmpty();
+    bool Insert(const T& item);
+    bool Remove(T item);
+    bool Find(const T& item);
+    bool getData(const T& item);
+    binTreeNode<T> *getRoot();
+    void preOrder(void (*visit)(bTreeNode<T> *t));
+    void inOrder(void (*visit)(bTreeNode<T> *t));
+    void postOrder(void (*visit)(bTreeNode<T> *t));
+    void levelOrder(void (*visit)(bTreeNode<T> *t));
+};

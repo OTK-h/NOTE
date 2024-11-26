@@ -1,0 +1,14 @@
+template<class T>
+class Set {
+public:
+    virtual set() = 0;
+    virtual makeEmpty() = 0;
+    virtual bool add(const T &x) = 0;
+    virtual bool del(const T &x) = 0;
+    virtual Set<T> union(const Set<T> &S) = 0;
+    virtual Set<T> sub(const Set<T> &S) = 0;
+    virtual Set<T> intersect(const Set<T> &S) = 0;
+    virtual bool contains(const T &x) = 0;
+    virtual bool subSet(const Set<T> &S) = 0;
+    virtual bool operator==(const Set<T> &S) = 0;
+};

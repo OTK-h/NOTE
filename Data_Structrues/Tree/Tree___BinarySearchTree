@@ -1,0 +1,47 @@
+template <class T>
+struct Node {
+    T val;
+    Node *l, *r;
+    Node(T v_, Node* l_ = nullptr, Node* r_ = nullptr) {
+        val = v_;
+        l = l_;
+        r = r_;
+    }
+};
+
+template <class T>
+class bsTree {
+public:
+    Node<T> *root;
+    bsTree() { root = nullptr; }
+    
+    Node<T>* FindMax(Node<T>* t) const {
+        //FinaMin
+        if(t == nullptr) return nullptr;
+        while(t->r != nullptr) t = t->r;
+        return t;
+    }
+    void insert(const T& v) { root = insertFunc(root, v); }
+    void remove(const T& v) { root = removeFunc(root, v); }
+    Node<T>* insertFunc(Node<T>* t, const T& v) {
+        if(t == nullptr) return new Node<T>(v);
+        if(v < t->val) t->l = insertFunc(t->l, v);
+        else if(v > t->val) t->r = insertFunc(t->r, v);
+        return t;
+    }
+    Node<T>* removeFunc(Node<T>* t, const T& v) {
+        if(t == nullptr) return t;
+        if(t->val == v) {
+            if(t->l != nullptr && t->r != nullptr) {
+                Node<T>* ret = FindMax(t->l);
+                t->val = ret->val;
+            }
+            else Node<T>* ret = (t->l != nullptr) ? t->l : t->r;
+            delete t;
+            return ret;
+        }
+        else if(t->val < v) t->r = removeFunc(t->r, v);
+        else if(t->val > v) t->l = removeFunc(t->l, v);
+        return t;
+    }
+};

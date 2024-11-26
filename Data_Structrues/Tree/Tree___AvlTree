@@ -1,0 +1,112 @@
+// 监视哨：在末尾设置特殊元素(目标元素)，不用每次比较都检查是否大于curSize
+// 顺序搜索平均搜索长度ASL = sigma(搜索第i个概率 * 搜到第i个的比较次数)
+// 顺序搜索监视哨ASL = sigma(pi * i)
+// ASL~unsucc~ = n+1
+
+// height = h, min num of nodes:
+// N~h~ = N~h-1~ + N~h-2~ + 1
+// N~n~ <= 1.44*log2(n+2)
+// insert, remove, rotate: O(log2(n))
+
+template <class T>
+struct AvlNode {
+    T val;
+    AvlNode *l, *r;
+    int h;
+    AvlNode(T v_, AvlNode *l_ = nullptr, AvlNode *r_ = nullptr) {
+        val = v_; l = l_; r = r_; h = 1;
+    }
+    void updateHeight() {
+        if(l == nullptr && r == nullptr) h = 1;
+        else if (l == nullptr) h = r->h + 1;
+        else if (r == nullptr) h = l->h + 1;
+        else h = max(l->h, r->h) + 1;
+    }
+};
+
+template <class T>
+class AvlTree {
+private:
+
+    int height(AvlNode<T>* t) const { return t == nullptr ? 0 : t->h; }
+    int balanceFactor(AvlNode<T> * t) const { return t == nullptr ? 0 : height(t->r) - height(t->l); }
+
+    AvlNode<T> *FindMin(AvlNode<T> *t) {
+        if (t == nullptr) return nullptr;
+        while (t->l!= nullptr) t = t->l;
+        return t;
+    }
+
+    AvlNode<T> *rotateL(AvlNode<T> *cur) {
+        AvlNode<T> *r = cur->r;
+        cur->r = r->l;
+        r->l = cur;
+        cur->updateHeight();
+        r->updateHeight();
+        return r;
+    }
+    AvlNode<T> *rotateR(AvlNode<T> *cur) {
+        AvlNode<T> *l = cur->l;
+        cur->l = l->r;
+        l->r = cur;
+        cur->updateHeight();
+        l->updateHeight();
+        return l;
+    }
+    AvlNode<T>* rotateRL(AvlNode<T> *t) {
+        t->r = rotateR(t->r);
+        return rotateL(t);
+    }
+    AvlNode<T>* rotateLR(AvlNode<T> *t){
+        t->l = rotateL(t->l);
+        return rotateR(t);
+    }
+
+    AvlNode<T>* fixBalance(AvlNode<T>* t) {
+        if(balanceFactor(t) < -1) 
+            return balanceFactor(t->l) < 0 ? rotateR(t) : rotateLR(t);
+        if(balanceFactor(t) > 1)
+            return balanceFactor(t->r) > 0 ? rotateL(t) : rotateRL(t);
+        return t;
+    }
+    
+    AvlNode<T> *insertFunc(AvlNode<T> *t, const T &x) {
+        // no same
+        if (t == nullptr) return new AvlNode<T>(x);
+        if (x < t->val) t->l = insertFunc(t->l, x);
+        else if (x > t->val) t->r = insertFunc(t->r, x);
+        t->updateHeight();
+        return fixBalance(t);
+    }
+
+    AvlNode<T> *removeFunc(AvlNode<T> *t, const T &x) {
+        if (t == nullptr) return t;
+        if (t->val == x) {
+            if (t->l == nullptr && t->r == nullptr) { delete t; return nullptr; }
+            else if (t->r == nullptr) { AvlNode<T>* ret = t->l; delete t; return ret; } 
+            else if (t->l == nullptr) { AvlNode<T> *ret = t->r; delete t; return ret; }
+            AvlNode<T> *tmp = FindMin(t->r);
+            t->val = tmp->val;
+            t->r = removeFunc(t->r, t->val);
+            t->updateHeight();
+            return fixBalance(t);
+        }
+
+        else if (t->val < x) t->r = removeFunc(t->r, x);
+        else if (t->val > x) t->l = removeFunc(t->l, x);
+        t->updateHeight();
+        return fixBalance(t);
+    }
+
+public:
+    AvlNode<T> *root;
+    AvlTree() { root = nullptr; }
+    void insert(const T& x) { root = insertFunc(root, x); }
+    void remove(const T& x) { root = removeFunc(root, x); }
+    void preOrderTraverse(AvlNode<T> *t) const {
+        if(t == nullptr) return;
+        cout<<t->val<<" ";
+        preOrderTraverse(t->l);
+        preOrderTraverse(t->r);
+    }
+}; 
