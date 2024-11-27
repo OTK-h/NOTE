@@ -1,393 +1,10 @@
-## 3.1 Concurrency and Correctness
-```java
-class LockBasedQueue {
-    int head, tail;
-    T[] items;
-    Lock lock;
-    public LockBasedQueue (capacity) {
-        head = tail = 0;
-        items = (T[])new Object(capacity);
-        lock = new ReentrantLock;
-    }
-    public void enq(T x) throws FullException {
-        lock.lock();
-        try{
-            if(tail - head == item.length)
-                throw FullException();
-            items[tail % items.length] = x;
-            tail++;
-        } finaly {
-            lock.unlock();
-        }
-    }
-    public T deq() throws EmptyException {
-        lock.lock();
-        try {
-            if(tail == head)
-                throw EmptyException();
-            T x = items[head % items.length];
-            head++;
-            return x;
-        } finaly {
-            lock.unlock();
-        }
-    }
-}
-```
+原子性：要么全执行不被打断，要么全不执行
+可见性：一个线程一旦修改某数据，其他线程立刻可见
+有序性：本线程内观察，所有操作有序。一个线程观察另一个线程，所有操作无序
 
-## 3.2 Sequential Objects
-fail if enqueue in the same time
-
-## 3.3 Quiescent Consistency
-method calls should appear to happen in a one-at-a-time sequential order  
-method calls seperated by a period of quiescence should appear to take effect in real-time order
-
-ab同时入队，c入队，ab无法判断先后，但ab在c前
-静态一致性：任何时间，一个object变成静态的，执行结果等效于已完成的操作的某种排序(不重叠的以实时顺序生效，重叠操作可能被重新排序)
-序列一致性：操作按照每个程序指定的顺序生效
-
-principle
-1. method call happen one-at-a-time sequential order
-2. Method calls separated by a period of quiescence should appear to take effect in their real-time order.
-
-## 3.4 Sequential Consistency
-principle
-methods call take effect in program order
-
-3.1 + 4.1: sequential consistence
-多个方法共同作用得到某个结果，若存在重叠，这些方法间的顺序可能有不同组合
-
-静态一致性不一定按照按照程序顺序，顺序一致性不被静态时期影响
-
-## 3.5 Linearizability
-principle
-methods call take effect between invocation and response
-Linearization point:
-lock-based: CS 
-not use lock: typically a single step where effects of method call become visible to other method
-顺序一致适合独立系统，如硬件内存，适合组合
-线性化适合描述大型系统组件，组件需要独立和验证
-实现并发对象的技术都是线性化的
-
-线性化和顺序一致性一样非常阻塞，和静态一致性一样是组合性的
-
-静态一致性：较弱的对象行为约束代价换取高性能
->方法调用呈顺序，瞬时发生
->静态状态前的方法调用 生效先于 静态方法后的方法调用
->非阻塞(一个完全的方法调用不需要等待另一个未决调用完成)，可复合(对正确性p，每个部分满足p，系统满足p)
-顺序一致性：强约束限制，通常描述类似硬件存储接口
->方法调用呈顺序，瞬时发生
->方法调用效果等于程序顺序调用(输入输出一致)
->总顺序满足每个线程内部的顺序
->非阻塞，不可复合
-可线性化特性：更强约束，描述可线性化组件构成的高层系统
->方法生效的地方通常是该方法调用的结果对其他方法调用可见时
-
-静态一致与顺序一致无关
-可线性化比静态，顺序高级，是他们的结合
-
-## 3.6 Formal Definations
-在调用和相应之间effect：更精确的，无法处理未返回的方法调用
-
-并发系统的执行由history，finite sequence of method, response events
-
-history H 的 subhistory是H的events的一个subsequence
-把method invocation写作<x.m(a*)A>
-把method response写作<>
-x Object
-m method name
-a* sequence of arguments
-a thread
-t Ok or exceotion name
-
-method call: formal name: H中的method call是H中的调用和下一个与之匹配的相应组成的一对(区分已返回，未返回的调用)
-
-## 3.7 Progress Conditions
-each object in class is wait-free, the class is wait-free
-wait-free algorithm can be ineffective
-wait-free method is lock-free method, 反之不然
-exploit obstruction-free: introduce back-off mechanism（a thread detects conflict pauses to give an earlier thread time to finish）
-
-## 3.8 The Java Memory Model
-```Java
-public static Singleton getInstance() {
-    if(instance == null) {
-        synchronized(Singleton.class) {
-            if(instance == null)
-                instance = new Singleton();
-        }
-    }
-    return instance;
-}
-```
-double-checked locking
-getIntance() : create the instance the first time it is called
-enter synchronized: observe an instance is null only
-不正确：java memory model中写入字段的线程可能不会立即更新到内存
-```Java
-class FinalFieldExample {
-    final int x; int y;
-    static FinalFieldExample f;
-    public FinalFieldExample() {
-        x = 3;
-        y = 4;
-    }
-    static void writer() {
-        f = new FinalFieldExample();
-    }
-    static void reader() {
-        if(f != null) {
-            int i = f.x;
-            int j = f.y;
-        }
-    }
-}
-public class EventListener {
-    final int x;
-    public EventListener(EventListener eventSource) {
-        eventSource.registerListneer(this);
-    }
-    public onEvent(Event e) {
-        // handle the event
-    }
-}
-```
-不正确：另一个线程在构造函数完成前调用onEvent(), onEvent()就看不到正确的值
-
-# 4 Foundations of Shared Memory
-由简单寄存器构造复杂寄存器
-线程异步：以不同速度运行，任意时刻可以停止一个不可预测的间隔
-不能用互斥实现共享存储器并发调用：1. 互斥通过寄存器实现 2. 寄存器时并发计算的基础块，应当无死锁或无饥饿
-寄存器的实现应该无等待
-## 4.1 The Space of Register
-```java
-public interface Register<T> {
-    T read();
-    void write(T v);
-}
-public class SequentialRegister<T> implements Register<T> {
-    private T value;
-    public T read() { return value; }
-    public void write(T v) { value = v; }
-}
-```
-register:
-1. 
-SRSW: single-register, single-writer
-MRSW: multi-register, single-writer
-MRMW: multi-register, multi-writer
-2. safe | regular | atomic register
-3. boolean | multi-valued register
-
-读写重叠可能读出value范围内任意值
-regular register:静态一致：MRSW：
-write()正在进行时，register值在新旧之间闪烁，read()与多个write()重叠，可能读出随机一个write()的值
-
-write order
-regular register or safe register: single writer
-atomic register: method call have linearization order
-对single-writer，写顺序和优先顺序一样
-
-## 4.2 Register Constructinons
-### 4.2.1 MRSW Safe Register
-```java
-public class SafeBooleanMRSWRegister implements Register<Boolean> {
-    boolean[] s_table;
-    public SafeBooleanMRSWRegister(int capacity) {
-        s_table = new boolean[capacity];
-    }
-    public Boolean read() {
-        return s_table[ThreadID.get()];
-    }
-    public void write(Boolean x) {
-        for(int i = 0; i < s_table.length; i++) {
-            s_table[i] = x;
-        }
-    }
-}
-// 如果read不覆盖write，返回s_table[A](即最近写入的)
-// 如果read覆盖write，可能返回任何值
-public class RegBooleanMRSWRegister implements Register<Boolean> {
-    ThreadLocal<Boolean> last;
-    boolean s_value;
-    RegBooleanMRSWRegister(int capacity) {
-        last = new THreadLocal<Boolean>() {
-            protected Boolean initialValue() {return false;}
-        }
-    }
-    public void write(Boolean x) {
-        if(x != last.get()) {
-            last.set(x);
-            s_value = x;
-        }
-    }
-    public Boolean read() {
-        return s_value;
-    }
-}
-// 不同处：若读写重叠且写入数据和旧数据一样，阻止写入
-```
-### 4.2.2 Regular M-Valued MRSW Register
-```java
-public class RegMRSWRegister implements Register {
-    private static int RANGE = Byte.MAX_VALUE - Byte.Min_VALUE + 1;
-    boolean[] r_bit = new boolean[RANGE];
-    public RegMRSWRegister(int capacity) {
-        for(int i = 1; i < RANGE; i++) {
-            r_bit[i] = flase;
-        }
-        r_bit[0] = true;
-    } 
-    public void write(Byte x) {
-        r_bit[x] = true;
-        for(int i = x-1; i >= 0; i--) {
-            r_bit[i] = false;
-        }
-    }
-    public Byte read() {
-        for(int i = 0; i < RANGE; i++) {
-            if(r_bit[i]) {
-                return i;
-            }
-        }
-        return -1;
-    }
-}
-// 写入将写入位置为true，之前为false
-// 读出第一个标记为true的位置
-```
-### 4.2.3 An Atomic SRSW Register
-```java
-public class StampedValue<T> {
-    public long stamp;
-    public T value;
-    public StampleValue (T init) {
-        stamp = 0;
-        value = init;
-    }
-    public static StampedValue max(StampedValue x, StampedValue y) {
-        if(x.stamp >= y.stamp) { return x; }
-        else { return y; }
-    }
-    public static StampedValue MIN_VALUE = new StampedValue(null);
-}
-// write顺序由stamp决定
-// read返回一个特定数据后，后面的read不能读出他之前的数据(stamp)
-```
-#### 4.2.4 An Atomic MRSW Register
-```java
-public class AtomicSRSWRegister<T> implements Register<T> {
-    ThreadLocal<Long> lastStamp;
-    ThreadLocal<StampedValue> lastRead;
-    StampedValue<T> r_value;
-    public AtomicSRSWRegister(T init) {
-        r_value = new StampedValue<T>(init);
-        lastStamp = new ThreadLocal<Long>() {
-            protected Long initialValue() { return 0; }
-        };
-        lastRead = new ThreadLocal<StampedValue>() {
-            protected StampedValue<T> initialValue() { return r_value; }
-        };
-    }
-    public T read() {
-        StampedValue<T> value = r_value;
-        StampedValue<T> last = lastRead.get();
-        StampedValue<T> result = StampedValue.max(value, last);
-        lastRead.set(result);
-        return result.value;
-    }
-    public void write(T v) {
-        long stamp = lastStamp.get() + 1;
-        r_value = new StampedValue(stamp, v);
-        lastStamp.set(stamp);
-    }
-}
-```
-```java
-public class AtomicMRSWRegister<T> implements Register<T> {
-    ThreadLocal<Long> lastStamp;
-    private StampedValue<T>[][] a_table;
-    public AtomicMRSWRegister(T init, int readers) {
-        lastStamp = new THreadLocal<Long>() {
-            protected Long initialValue() { return 0; }
-        };
-        a_table = (StampedValue<T>[][]) new StampedValue[readers][readers];
-        StampedValue<T> value = new StampedValue<T>(init);
-        for(int i = 0; i < readers; i++) {
-            for(int j = 0; j < readers; j++) {
-                a_table[i][j] = value;
-            }
-        }
-    }
-    public T read() {
-        int me = ThreadID.get();
-        StampedValue<T> value = a_table[me][me];
-        for(int i = 0; i < a_table.length; i++) {
-            value = StampedValue.max(value, a_table[i][me]);
-        }
-        for(int i = 0; i < a_table.length; i++) {
-            a_table[me][i] = value;
-        }
-        return value;
-    }
-    public void write(T v) {
-        long stamp = lastStamp.get() + 1;
-        lastStamp.set(stamp);
-        StampedValue<T> value = new StampedValue<T>(stamp, v);
-        for(int i = 0; i < a_table.length; i++) {
-            a_table[i][i] = value;
-        }
-    }
-}
-```
-#### 4.2.5 An Atomic MRMW Register
-```java
-public class AtomicMRSWRegister<T> implements Register<T> {
-    private StampedValue<T>[] a_table;
-    public AtomicMRMWRegister(int capacity, T init) {
-        a_table = (StampedValue<T>[]) new StampedValue[capacity](init);
-        StampedValue<T> value = new StampedValue<T>(init);
-        for(int i = 0; i < a_table.length; i++) {
-            a_table[i] = value;
-        }
-    }
-    public void write(T v) {
-        int me = THreadID.get();
-        StampedValue<T> max = StampedValue.MIN_VALUE;
-        for(int i = 0; i < a_table.length; i++) {
-            max = StampedValue.max(max, a_table[i]);
-        }
-        a_table[me] = new StampedValue(max.stamp + 1, value);
-    }
-    public T read() {
-        StampedValue<T> max = StampedValue.MIN_VALUE;
-        for(int i = 0; i < a_table.length; i++) {
-            max = StampedValue.max(max, a_table[i]);
-        }
-        return max.value;
-    }
-}
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+volatile保证可见性，不保证原子性，禁止指令重排
+重排序原则：不对存在数据依赖的操作重排，重拍前后单线程下执行结果相同
+执行到volatile读写操作：前面的操作必须全部进行且可见，指令优化不改变volatile相对位置
 
 |||||
 |:---:|:---:|:---:|:---:|
@@ -553,7 +170,7 @@ public class ALock implements Lock {
 }
 ```
 线程共享flag[]，任意时刻线程在本地缓存的副本自旋
-可能争用：假共享_相邻数据项在同一个cache line，写一个数据项导致该cache line无效，对未改变的数据项产生无效流量——要确保数据项处在单独cache line
+可能争用：假共享_相邻数据项在同一个cache line，写一个数据项导致该cache line无效，对未改变的数据项产生无效流量。要确保数据项处在单独cache line
 
 ```java
 class QNode {
@@ -587,7 +204,7 @@ public class CLHLock implements Lock {
     }
 }
 ```
-QNode的locked记录每个线程状态，true已经获得|正在等待，false已释放，链表隐式，每个线程通过局部变量pred指向前驱。要获得锁：将自己的locked设置true，对tail调用getAngSet(使自己成为tail，并获取前驱引用)，在前驱locked域等待直到前驱释放
+QNode的locked记录每个线程状态，true已经获得|正在等待，false已释放，链表隐式，每个线程通过局部变量pred指向前驱。要获得锁：将自己的locked设置true，对tail调用getAngSet()使自己成为tail，并获取前驱引用，在前驱locked域等待直到前驱释放
 1.存储空间少于ALock 2.不需要知道可能用锁的线程数 3.FCFS
 
 MCS lock
@@ -632,3 +249,92 @@ public class MCSLock implements Lock {
 释放锁：若next空，1.不存在争用 2.存在争用执行较慢。compare返回true说明没有线程，tail设为null，返回false，等待next设置
 
 时限队列锁
+```java
+class QNode {
+    public Qnode pred;
+}
+public class TOLock implements Lock {
+    static QNode AVAILABLE = new QNode();
+    AtomicReference<QNode> tail = new AtomicReference<QNode>(null);
+    ThreadLoal<QNode> myNode;
+
+    public TOLock() {
+        myNode = new ThreadLocal<QNode>() {
+            protected QNode initialValue() { return new QNode(); }
+        };
+    }
+    public void unlock() {
+        QNode qnode = myNode.get();
+        if(!qnode.compareAndSet(qnode, null)) {
+            qnode.pred = AVAILABLE
+        }
+    }
+    public void lock() {
+        try {
+            tryLock(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch(InterruptedException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
+        long startTime = System.nanoTime();
+        long patience = TimeUnit.NANOSECONDS.convert(time, unit);
+        QNode qnode = new QNode();
+        myNode.set(qnode);
+        qnode.pred = null;
+        QNode pred = tail.getAndSet(qnode);
+        if(pred == null || pred.pred == AVAILABLE) {
+            // free
+            return true;
+        }
+        while(System.nanoTime() - startTime < patience) {
+            QNode predOfPred = pred.pred;
+            if(predOfPred == AVAILABLE) {
+                return true;
+            }
+            else if(predOfPred != null) {
+                pred = predOfPred;
+            }
+        }
+        // time out
+        if(!tail.compareAndSet(qnode, pred)){
+            qnode.pred = pred;
+        }
+        return false;
+    }
+
+}
+```
+线程在前驱节点自旋。若线程超时，不能简单抛弃队列节点(否则后继节点无法注意)，要让节点从列表删除而不影响并发锁释放。
+惰性方法：线程超时，标记为放弃，后继节点注意到自己在放弃节点自旋，转而在放弃节点的前驱自旋(可以重用被放弃节点)
+pred为null，对应线程为获得锁或以释放锁
+pred为AVALIABLE，对应线程已释放
+pred为某个QNode类型tmp，对应线程已放弃，后继在tmp自旋
+
+tryLock()：
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Syncrhonized用于线程数据共享，THreadLocal用于线程数据隔离
+Synchronized利用锁，某时刻只被一个线程访问。ThreadLOcal给每个线程提供副本
+
+ThreadLocal的set()获取当前线程，获取当前线程ThreadLocalMap，为空则创建值为v，不为空则直接改变值

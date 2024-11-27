@@ -1,4 +1,5 @@
-# 2.1 Time
+# Mutual Exclusion
+## 1. Time
 |||
 |:---:|:---:|
 |a<sub>i</sub>|A线程第i个任务|
@@ -6,7 +7,7 @@
 |I<sub>A</sub> = (a<sub>i</sub>, a<sub>j</sub>)|第i个任务到第j个任务的时期|
 |I<sub>A</sub> → I<sub>B</sub>|I<sub>A</sub>最后一个任务在I<sub>B</sub>第一个任务之前|
 |a<sub>0</sub> → a<sub>1</sub>|第0个任务在第1个任务之前|
-# 2.2 Critical Sections(CS)
+## 2. Critical Sections(CS)
 1. 每个特殊部分和unique Lock交流  
 2. 线程尝试进入特殊部分，上锁  
 3. 线程离开特殊部分，解锁
@@ -30,8 +31,8 @@ public class Counter {
     }
 }
 ```
-# 2.3 2-Tread Solutions
-## The LockOne Class
+## 3. 2-Tread Solutions
+### The LockOne Class
 ```Java
 // not deadlock-free
 // not mutual exclusive (2 threads lock the other meanwhile)
@@ -51,7 +52,7 @@ class LockOne implements Lock {
     }
 }
 ```
-## The LockTwo Class
+### The LockTwo Class
 ```Java
 // not deadlock-free
 // one runs first, and the other never runs
@@ -66,7 +67,7 @@ class LockTwo implements Lock {
     // deadlock if one runs completely before the other
 }
 ```
-## The Peterson Lock
+### The Peterson Lock
 ```Java
 // mutual exclusion & starvation-free & deadlock-free
 class PetersonLock implements Lock {
@@ -85,7 +86,7 @@ class PetersonLock implements Lock {
     }
 }
 ```
-# 2.4 The Filter Lock
+## 4. The Filter Lock
 ```Java
 // 2 mutual exclusive protocols work for n threads (n>2)
 // thread gets through n-1 level(waiting room) to reach cs
@@ -121,12 +122,12 @@ class FilterLock implements Lock {
     }
 }
 ```
-# 2.5 Fairness
+## 5. Fairness
 starvation-free: each thread call lock() will reach cs eventually  
 >***but*** may take a long time, cannot find which first call lock() -> split lock()
 1. doorway: countable step  
 2. waiting room: uncountable step
-# 2.6 Lamport's Bakery Algorithm
+## 6. Lamport's Bakery Algorithm
 ```Java
 // deadlock-free, first-come-first-serve
 class BakeryLock implements Lock {
@@ -160,9 +161,9 @@ class BakeryLock implements Lock {
     }
 }
 ```
-# 2.7 Bounded Timestamps
+## 7. Bounded Timestamps
 label[i]的值无限增长可能溢出
-# 2.8 Lower Bounds on the Number of Locations
+## 8. Lower Bounds on the Number of Locations
 Bakery不实用: r-w n distinct Locations  
 线性下界是解决互斥问题时锁固有的: info can be overwritten without other thread before read  
 >***Any deadlock-free Lock algorithm must have n distinct locations.***

@@ -1,5 +1,6 @@
-# 1.1 Shared Objects and Synchronization
-## 找出 1-10^9 中的素数
+# Introduction
+## 1. Shared Objects and Synchronization
+### 找出 1-10^9 中的素数
 1. 平均分成十份，每份做同样的遍历检查(无法保证每一份花费相同)
 2. 给每线程分配一个数，判断完后获取下一个数(无法锁住counter)
 ```Java
@@ -21,8 +22,8 @@ void primePrint() {
     }
 }
 ```
-# 1.2 A Fable
-## 遛狗
+## 2. A Fable
+### 遛狗
 ```txt
 A，B不相容，共用一个院子
 
@@ -37,15 +38,15 @@ B:
 3. B begin
 4. B end, B flag reset
 ```
-## Properties of Mutual Exclusion
+### Properties of Mutual Exclusion
 ```txt
 deadlock_free(避免死锁)
 starvation-freedom(某线程最终不会不运行)
 fault-tolerance(某线程发生意外不影响其他线程)
 ```
-## The Moral
+### The Moral
 不可通过线程互相交流实现互斥：Transient communication需要多线程同时参与，Persistent communication可以发生在不同时间
-# 1.3 The Producer-Consumer Problem
+## 3. The Producer-Consumer Problem
 ```txt
 A养狗，B送食，狗咬B
 
@@ -63,7 +64,7 @@ B
 Mutual Exclusion(AB不同时进行)
 Starvation-freedom(B一直准备product，A一饿就吃)
 ```
-# 1.4 The Readers-Writers Problem
+## 4. The Readers-Writers Problem
 B只在A传送的信息完成时阅读信息，用于获取持续信息
-# 1.5The Harsh Realities of Parallelization
+## 5. The Harsh Realities of Parallelization
 Amdahl's Law
